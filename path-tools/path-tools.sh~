@@ -1,0 +1,24 @@
+#!/bin/bash
+
+function abspath() {
+    if [ $# = 1 ] ; then
+	opwd=$OLDPWD
+	dname=`dirname $1`
+	if [ -d $dname ] ; then 
+	    cd $dname
+	    echo `pwd`/`basename $1`
+	    cd $OLDPWD
+	    if [ -d $opwd ] ; then
+		cd $opwd
+		cd $OLDPWD
+	    fi
+	else
+	    echo "abspath $1: Directory \"$dname\" doesn't exist!"
+	fi
+	unset opwd dname
+    else
+	for fname in $@ ; do
+	    abspath $fname
+	done
+    fi
+}
