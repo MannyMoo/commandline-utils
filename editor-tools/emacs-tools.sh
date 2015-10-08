@@ -30,10 +30,10 @@ function emacs-daemon() {
 
 alias emd=emacs-daemon
 if [ -z $SSH_CONNECTION ] ; then
-    alias em="$EMACSCLIENT -c -q"
+    alias em="$EMACSCLIENT -c"
     alias emn="em -nw"
 else
-    alias em="$EMACSCLIENT -c -q -nw"
+    alias em="$EMACSCLIENT -c -nw"
     alias emn="em"
 fi
 
