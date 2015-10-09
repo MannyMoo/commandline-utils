@@ -1,4 +1,5 @@
 #!/bin/bash
+# Requires functionality from commandline-tools/network-tools/network-tools.sh
 
 function list-network-ports() {
     networksetup -listallhardwareports
@@ -45,3 +46,18 @@ function connect-to-wifi-network() {
     networksetup -setairportnetwork `get-wifi-device` $1 $2
 }
 
+function link-airport() {
+    sudo ln -s /System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport /usr/sbin/airport
+}
+
+function spoof-wifi-address() {
+    if [ -z `which airport` ] ; then
+	link-airport
+    fi
+    sudo airport -z
+    dev=`get-wifi-device`
+    spoof-mac-address $dev
+    networksetup -detectnewhardware
+    turn-device-off $dev
+    turn-device-on $dev
+}
