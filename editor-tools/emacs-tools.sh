@@ -29,11 +29,17 @@ function emacs-daemon() {
 }
 
 alias emd=emacs-daemon
+if [ -z $USEEMACSDAEMON ] || [ ! "$USEEMACSDAEMON" = "0" ] ; then
+    RUNEMACS="$EMACSCLIENT -c"
+else
+    RUNEMACS="$EMACS"
+fi
+
 if [ -z $SSH_CONNECTION ] ; then
-    alias em="$EMACSCLIENT -c"
+    alias em="$RUNEMACS"
     alias emn="em -nw"
 else
-    alias em="$EMACSCLIENT -c -nw"
+    alias em="$RUNEMACS -nw"
     alias emn="em"
 fi
 
