@@ -1,23 +1,29 @@
 # Utilities for working with git.
 
+if [ -z "$GITKEYNAME" ] ; then
+    export GITKEYNAME='~/.ssh/id_rsa.git'
+fi
+
+function git_start_ssh_agent() {
+    if [ -z `eval "$(ssh-agent -s)"` ] ; then
+	echo "ssh agent isn't running! Can't add git id."
+    else
+	ssh-add "$GITKEYNAME"
+    fi
+}
+
 function git_gen_key() {
     if [ ! -e ~/.ssh ] ; then
 	mkdir ~/.ssh
     fi
-    local keyname='~/.ssh/id_rsa.git'
-    ssh-keygen -t rsa -b 4096 -f "$keyname" -C "$(git config --get user.email)"
-    if [ -z `eval "$(ssh-agent -s)"` ] ; then
-	echo "ssh agent isn't running! Can't add git id."
-    else
-	ssh-add "$keyname"
-    fi
+    ssh-keygen -t rsa -b 4096 -f "$GITKEYNAME" -C "$(git config --get user.email)"
+    git_start_ssh_agent
     echo "Public key:"
-    cat "${keyname}.pub"
+    cat "${GITKEYNAME}.pub"
     set_git_ssh_config
 }
 
 function git_set_ssh_config() {
-    local keyname='~/.ssh/id_rsa.git'
     if [ ! -e ~/.ssh/config ] ; then 
 	touch ~/.ssh/config
     else
@@ -27,7 +33,7 @@ function git_set_ssh_config() {
     sed "1 i\\
 Host github.com\\
 \   PubkeyAuthentication yes\\
-\   IdentityFile ${keyname}\\
+\   IdentityFile ${GITKEYNAME}\\
 " ~/.ssh/config > ~/.ssh/config.tmp && mv ~/.ssh/config.tmp ~/.ssh/config
 }
 
