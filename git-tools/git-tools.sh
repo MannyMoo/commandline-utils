@@ -1,6 +1,6 @@
 # Utilities for working with git.
 
-function gen_git_key() {
+function git_gen_key() {
     if [ ! -e ~/.ssh ] ; then
 	mkdir ~/.ssh
     fi
@@ -16,7 +16,7 @@ function gen_git_key() {
     set_git_ssh_config
 }
 
-function set_git_ssh_config() {
+function git_set_ssh_config() {
     local keyname='~/.ssh/id_rsa.git'
     if [ ! -e ~/.ssh/config ] ; then 
 	touch ~/.ssh/config
@@ -31,7 +31,23 @@ Host github.com\\
 " ~/.ssh/config > ~/.ssh/config.tmp && mv ~/.ssh/config.tmp ~/.ssh/config
 }
 
-function test_git_ssh() {
+function git_test_ssh() {
     ssh -T git@github.com
 }
 
+function git_init_repo() {
+    local repo="$1"
+    if [ $# = 2 ] ; then
+	local repodir="$2"
+    else
+	local repodir="."
+    fi
+    cd "$repodir"
+    git init
+    git add .
+    git commit -m "First commit"
+    git remote add origin "$repo"
+    git remote -v
+    git push origin master
+    cd "$OLDPWD"
+}
