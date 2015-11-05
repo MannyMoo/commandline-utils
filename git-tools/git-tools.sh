@@ -6,9 +6,11 @@ if [ -z "$GITKEYNAME" ] ; then
 fi
 
 function git_start_ssh_agent() {
-    if [ -z `eval "$(ssh-agent -s)"` ] ; then
-	echo "ssh agent isn't running! Can't add git id."
+    # Requires ssh-tools/ssh-tools.sh
+    if [ -z `which ssh-agent` ] ; then
+	echo "Can't find ssh-agent! Can't add git id."
     else
+	start_ssh_agent
 	ssh-add "$GITKEYNAME"
     fi
 }
