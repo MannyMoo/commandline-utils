@@ -1,7 +1,8 @@
+
 # Utilities for working with git.
 
 if [ -z "$GITKEYNAME" ] ; then
-    export GITKEYNAME='~/.ssh/id_rsa.git'
+    export GITKEYNAME="${HOME}/.ssh/id_rsa.git"
 fi
 
 function git_start_ssh_agent() {
@@ -12,7 +13,7 @@ function git_start_ssh_agent() {
     fi
 }
 
-function git_gen_key() {
+function git_gen_ssh_key() {
     if [ ! -e ~/.ssh ] ; then
 	mkdir ~/.ssh
     fi
@@ -20,7 +21,7 @@ function git_gen_key() {
     git_start_ssh_agent
     echo "Public key:"
     cat "${GITKEYNAME}.pub"
-    set_git_ssh_config
+    git_set_ssh_config
 }
 
 function git_set_ssh_config() {
@@ -67,4 +68,26 @@ function git_commit() {
     fi
     git commit -a -m "$msg"
     git push origin "$branch"
+}
+
+function git_repo_name() {
+    if [ -z "$1" ] ; then
+	local d='.'
+    else
+	local d="$1"
+    fi
+    cd "$d"
+    git remote -v | head -n 1 | sed 's#.*/\([^/]*/.*\.git\) .*#\1#'
+    cd $OLDPWD
+}
+
+function git_set_ssh_remote() {
+    if [ -z "$1" ] ; then
+	local d='.'
+    else
+	local d="$1"
+    fi
+    cd "$d"
+    local repo=`git_repo_name`
+    git remote set-url origin "git@github.com:${repo}"
 }
