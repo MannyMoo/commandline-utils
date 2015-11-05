@@ -57,3 +57,14 @@ function git_init_repo() {
     git push origin master
     cd "$OLDPWD"
 }
+
+function git_commit() {
+    local msg="$1"
+    if [ ! -z "$2" ] ; then
+	local branch="$2"
+    else
+	local branch="master"
+    fi
+    git commit -a -m "$msg"
+    git push origin "$branch"
+}
