@@ -66,7 +66,7 @@ function git_commit() {
     if [ ! -z "$2" ] ; then
 	local branch="$2"
     else
-	local branch="master"
+	local branch=`git_get_working_branch`
     fi
     git commit -a -m "$msg"
     git push origin "$branch"
@@ -92,4 +92,8 @@ function git_set_ssh_remote() {
     cd "$d"
     local repo=`git_repo_name`
     git remote set-url origin "git@github.com:${repo}"
+}
+
+function git_get_working_branch() {
+    git branch | grep '*' | sed 's/\* //'
 }
