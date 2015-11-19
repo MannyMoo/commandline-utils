@@ -1,3 +1,4 @@
+#!/bin/sh
 
 function source_all() {
     if [ ! -z "$1" ] ; then 
