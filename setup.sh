@@ -46,6 +46,6 @@ source ${utilsdir}/source-all.sh ${utilsdir}
 if [ $setupgit != 0 ] ; then
     echo "Configuring git."
     source ${utilsdir}/git-tools/git-tools.sh
-    git_setup_new_machine
+    git_setup_new_machine "${un}" "${email}"
     git_set_ssh_remote "${utilsdir}"
 fi
