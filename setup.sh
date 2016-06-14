@@ -3,7 +3,7 @@
 # A POSIX variable
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
-installdir="$HOME/bash/"
+installdir="$HOME/lib/bash/"
 setupgit=0
 un=""
 email=""
