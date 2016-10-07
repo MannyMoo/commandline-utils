@@ -15,15 +15,36 @@ function git_start_ssh_agent() {
     fi
 }
 
+function git_setup_user_info() {
+    if [ ! -z "$1" ] ; then
+	un="$1"
+    else
+	echo "Enter your name for git:"
+	read un
+    fi
+    if [ ! -z "$2" ] ; then
+	email="$2"
+    else
+	echo "Enter email address for git:"
+	read email
+    fi
+    git config --global user.name "${un}"
+    git config --global user.email "${email}"
+}
+
 function git_gen_ssh_key() {
+    echo "Generating ssh private/public key pair."
     if [ ! -e ~/.ssh ] ; then
 	mkdir ~/.ssh
     fi
     ssh-keygen -t rsa -b 4096 -f "$GITKEYNAME" -C "$(git config --get user.email)"
     git_start_ssh_agent
-    echo "Public key:"
+    echo "Public key (on github.com copy to Settings -> SSH Keys -> Add SSH Key):"
     cat "${GITKEYNAME}.pub"
+    echo "Editing ~/.ssh/config to add git config."
     git_set_ssh_config
+    echo "Testing ssh settings."
+    git_test_ssh 
 }
 
 function git_set_ssh_config() {
@@ -42,6 +63,11 @@ Host github.com\\
 
 function git_test_ssh() {
     ssh -T git@github.com
+}
+
+function git_setup_new_machine() {
+    git_setup_user_info $@
+    git_gen_ssh_key
 }
 
 function git_init_repo() {
