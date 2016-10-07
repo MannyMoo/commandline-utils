@@ -1,3 +1,4 @@
+#!/bin/sh
 
 function source_all() {
     if [ ! -z "$1" ] ; then 
@@ -8,7 +9,7 @@ function source_all() {
 	#local d="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 	local d='.'
     fi
-    for f in `find "$d" -mindepth 1 -name "*.sh"` ; do
+    for f in `find "$d" -mindepth 2 -name "*.sh"` ; do
 	#echo $f
 	source $f
     done
