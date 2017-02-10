@@ -61,3 +61,23 @@ function spoof-wifi-address() {
     turn-device-off $dev
     turn-device-on $dev
 }
+
+function set-auto-proxy-config() {
+    sudo networksetup -setautoproxyurl "$1" "$2"
+}
+
+function turn-on-auto-proxy() {
+    sudo networksetup -setautoproxystate "$1" on
+}
+
+function turn-off-auto-proxy() {
+    sudo networksetup -setautoproxystate "$1" off
+}
+
+function connect-vpn() {
+    scutil --nc start $@
+}
+
+function stop-vpn() {
+    scutil --nc start $1
+}
