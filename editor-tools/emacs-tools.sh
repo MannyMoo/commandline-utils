@@ -45,3 +45,5 @@ fi
 
 alias emwd="emd;em"
 alias emnwd="emd;emn"
+alias e=em
+alias en=emn
