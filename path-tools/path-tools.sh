@@ -34,3 +34,10 @@ function mkdircd() {
 	cd $1
     fi
 }
+
+function rename() {
+    for f in ${@:3} ; do
+	local dest=`echo $f | sed "s/$1/$2/"`
+	mv "$f" "${f/$1/$2}"
+    done
+}
