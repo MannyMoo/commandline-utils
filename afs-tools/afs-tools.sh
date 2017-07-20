@@ -11,3 +11,16 @@ function afs-screen() {
 	(pagsh.krb -c "SCREENRC=$HOME/public/.screenrc screen -S $1 -d -m k5reauth \
 && screen -raAd $1")
 }
+
+function start-krenew() {
+    if [ -z "$(which ps 2> /dev/null)" ] || [ -z "$(which grep 2> /dev/null)" ] || [ -z "$(which krenew 2> /dev/null)" ]
+    then
+	return 1
+    fi
+
+    kproc="$(ps x -u ${USER} | grep krenew | grep ${KRB5CCNAME})"
+    if [ -z "${kproc}" ]
+    then
+        krenew -K 60 -t -k ${KRB5CCNAME} &
+    fi
+}
