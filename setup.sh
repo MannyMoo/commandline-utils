@@ -44,7 +44,7 @@ export COMMANDLINEUTILSROOT=${utilsdir}
 to your login.
 
 To use everything do:
-source \$COMMANDLINEUTILSDIR/source-all.sh
+source \$COMMANDLINEUTILSROOT/source-all.sh
 or pick and choose from the utils scripts.
 "
 
