@@ -1,7 +1,9 @@
 #!/bin/sh
 
 function source_all() {
-    if [ ! -z "$1" ] ; then 
+    if [ ! -z "$COMMANDLINEUTILSROOT" ] ; then
+        local d="$COMMANDLINEUTILSROOT"
+    elif [ ! -z "$1" ] ; then 
 	local d="$1"
     else
 	# If you call this within a script this just finds the directory

@@ -13,7 +13,7 @@ or
 sh -c "$(wget https://raw.githubusercontent.com/MannyMoo/commandline-utils/master/setup.sh -O -)"
 ```
 
-Alternatively, if you want to specify the install directory (default is ~/bash/) or configure git ssh access automatically (eg, for a new machine) you can do
+Alternatively, if you want to specify the install directory (default is ~/lib/bash/) or configure git ssh access automatically (eg, for a new machine) you can do
 
 ```shell
 curl -fsSL https://raw.githubusercontent.com/MannyMoo/commandline-utils/master/setup.sh > setup.sh

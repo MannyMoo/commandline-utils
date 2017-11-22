@@ -39,8 +39,13 @@ git clone "https${url}" || git clone "git${url}"
 utilsdir="${installdir}/commandline-utils/"
 
 echo "Installed in ${utilsdir}
+Add
+export COMMANDLINEUTILSROOT=${utilsdir}
+to your login.
+
 To use everything do:
-source ${utilsdir}/source-all.sh ${utilsdir}
+source \$COMMANDLINEUTILSDIR/source-all.sh
+or pick and choose from the utils scripts.
 "
 
 if [ $setupgit != 0 ] ; then
