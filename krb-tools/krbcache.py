@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import subprocess, os, datetime
 
@@ -98,10 +98,27 @@ class KrbCache(object) :
         return self.popen(**kwargs)
 
 if __name__ == '__main__' :
-    cache = KrbCache('malexand')
-    cache.kdestroy()
-    #cache.klist()
-    #cache.kinit()
-    cache.check_call(args = ['ssh', 'lxplus039'])
-    print cache.timeleft()
-    print cache.expires()
+    from argparse import ArgumentParser
+
+    argparser = ArgumentParser()
+    argparser.add_argument('--principal', '-p', default = None, help = 'Principal for the tokens')
+    argparser.add_argument('--ccname', '-c', default = None, help = 'Cache file name')
+    argparser.add_argument('--mintimeleft', '-t', default = 5, type = float, help = 'Minimum time left [hrs] before tokens are renewed.')
+    argparser.add_argument('--aklog', action = 'store_true', help = 'Call aklog after kinit')
+    argparser.add_argument('--args', default = [], nargs = '*', help = 'Commands to call')
+    argparser.add_argument('--shell', action = 'store_true', help = 'Use the default shell to evaluate the commands.')
+
+    args = argparser.parse_args()
+    cache = KrbCache(principal = args.principal, ccname = args.ccname,
+                     mintimeleft = args.mintimeleft, aklog = args.aklog)
+    if args.shell :
+        args.args = ' '.join(args.args)
+    cache.check_kinit()
+    if args.args :
+        exitcode, stdout, stderr = cache.check_call(args = args.args,
+                                                    shell = args.shell)
+        if 0 != exitcode :
+            raise Exception('Failed to call {0!r} (shell = {1!r})! Exitcode: {2}'.format(args.args,
+                                                                                         args.shell,
+                                                                                         exitcode))
+    
