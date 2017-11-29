@@ -99,16 +99,33 @@ class KrbCache(object) :
 
 if __name__ == '__main__' :
     from argparse import ArgumentParser
-
+    import sys
+    
     argparser = ArgumentParser()
-    argparser.add_argument('--principal', '-p', default = None, help = 'Principal for the tokens')
-    argparser.add_argument('--ccname', '-c', default = None, help = 'Cache file name')
-    argparser.add_argument('--mintimeleft', '-t', default = 5, type = float, help = 'Minimum time left [hrs] before tokens are renewed.')
-    argparser.add_argument('--aklog', action = 'store_true', help = 'Call aklog after kinit')
-    argparser.add_argument('--args', default = [], nargs = '*', help = 'Commands to call')
-    argparser.add_argument('--shell', action = 'store_true', help = 'Use the default shell to evaluate the commands.')
+    optstrings = []
+    # Have to be careful none of these conflict with args used by other commands that might be passed via --args.
+    optstrings += argparser.add_argument('--principal', default = None, help = 'Principal for the tokens.').option_strings
+    optstrings += argparser.add_argument('--ccname', default = None, help = 'Cache file name.').option_strings
+    optstrings += argparser.add_argument('--mintimeleft', default = 5, type = float, help = 'Minimum time left [hrs] before tokens are renewed.').option_strings
+    optstrings += argparser.add_argument('--aklog', action = 'store_true', help = 'Call aklog after kinit').option_strings
+    optstrings += argparser.add_argument('--args', default = [], nargs = '*', help = 'Commands to call.').option_strings
+    optstrings += argparser.add_argument('--shell', action = 'store_true', help = 'Use the default shell to evaluate the commands.').option_strings
 
-    args = argparser.parse_args()
+    # Hide any options starting with '-' passed in --args.
+    argv = list(sys.argv[1:])
+    changes = {}
+    for i, arg in enumerate(argv) :
+        if arg.startswith('-') and not arg in optstrings :
+            argv[i] = arg.replace('-', '_')
+            changes[argv[i]] = arg
+            
+    args = argparser.parse_args(argv)
+
+    # Change them back again.
+    for i, arg in enumerate(args.args) :
+        if arg in changes :
+            args.args[i] = changes[arg]
+            
     cache = KrbCache(principal = args.principal, ccname = args.ccname,
                      mintimeleft = args.mintimeleft, aklog = args.aklog)
     if args.shell :
