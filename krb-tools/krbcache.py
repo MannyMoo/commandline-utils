@@ -62,8 +62,15 @@ class KrbCache(object) :
                 raise Exception(stderr)
             else :
                 raise Exception('Call to klist failed! Exit code: ' + str(exitcode))
-        lastline = filter(None, stdout.split('\n'))[-1].split()
-        time = datetime.datetime.strptime(' '.join(lastline[istart:iend]), '%b %d %H:%M:%S %Y')
+        lines = filter(None, stdout.split('\n'))
+        lastline = lines[-1].split()
+        timeformat = '%b %d %H:%M:%S %Y'
+        if lastline[0] == 'renew' :
+            istart /= 2
+            iend /= 2
+            lastline = lines[-2].split()
+            timeformat = '%m/%d/%Y %H:%M:%S'
+        time = datetime.datetime.strptime(' '.join(lastline[istart:iend]), timeformat)
         return time
     
     def expires(self) :
@@ -73,10 +80,7 @@ class KrbCache(object) :
         return self._time(0, 4)
 
     def timeleft(self) :
-        try :
-            expires = self.expires()
-        except :
-            return datetime.timedelta(0)
+        expires = self.expires()
         now = datetime.datetime.today()
         return max(datetime.timedelta(0), expires - now)
 
