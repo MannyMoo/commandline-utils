@@ -70,6 +70,8 @@ class KrbCache(object) :
             iend /= 2
             lastline = lines[-2].split()
             timeformat = '%m/%d/%Y %H:%M:%S'
+            if len(lastline[istart].split('/').split()[0]) == 2 :
+                timeformat = '%m/%d/%y %H:%M:%S'
         time = datetime.datetime.strptime(' '.join(lastline[istart:iend]), timeformat)
         return time
     
