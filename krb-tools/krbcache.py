@@ -72,6 +72,8 @@ class KrbCache(object) :
             timeformat = '%m/%d/%Y %H:%M:%S'
             if len(lastline[istart].split('/')[2].split()[0]) == 2 :
                 timeformat = '%m/%d/%y %H:%M:%S'
+        if lastline[istart] == '>>>Expired<<<' :
+            return datetime.datetime.today() - datetime.timedelta(hours = 1)
         time = datetime.datetime.strptime(' '.join(lastline[istart:iend]), timeformat)
         return time
     
