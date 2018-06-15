@@ -6,7 +6,7 @@ function exe-script() {
     local shell=$1
     local fname=$2
     if [ "python" = "$shell" ] ; then
-	echo "#!/bin/env python
+	echo "#!/usr/bin/env python
 " > $fname
     else 
 	echo "#!$(which $shell)
