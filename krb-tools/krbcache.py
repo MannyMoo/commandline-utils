@@ -50,7 +50,10 @@ class KrbCache(object) :
         return self.aklog()
 
     def klist(self, **kwargs) :
-        return self.call(args = ['klist'], **kwargs)
+        exitcode, stdout, stderr = self.call(args = ['klist'], **kwargs)
+        if exitcode != 0 and 'No ticket file' in stderr :
+            exitcode = 0
+        return exitcode, stdout, stderr
 
     def kdestroy(self, **kwargs) :
         return self.call(args = ['kdestroy'], **kwargs)
@@ -62,6 +65,10 @@ class KrbCache(object) :
                 raise Exception(stderr)
             else :
                 raise Exception('Call to klist failed! Exit code: ' + str(exitcode))
+
+        if 'No ticket file' in stderr :
+            return datetime.datetime.today() - datetime.timedelta(hours = 1)
+
         lines = filter(None, stdout.split('\n'))
         lastline = lines[-1].split()
         timeformat = '%b %d %H:%M:%S %Y'
@@ -72,6 +79,8 @@ class KrbCache(object) :
             timeformat = '%m/%d/%Y %H:%M:%S'
             if len(lastline[istart].split('/')[2].split()[0]) == 2 :
                 timeformat = '%m/%d/%y %H:%M:%S'
+        if lastline[istart] == '>>>Expired<<<' :
+            return datetime.datetime.today() - datetime.timedelta(hours = 1)
         time = datetime.datetime.strptime(' '.join(lastline[istart:iend]), timeformat)
         return time
     
