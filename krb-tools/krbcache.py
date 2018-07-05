@@ -41,8 +41,12 @@ class KrbCache(object) :
         return self.call(args = self.kinitargs)
 
     def aklog(self, **kwargs) :
-        return self.call(args = ['aklog'], **kwargs)
-
+        try :
+            return self.call(args = ['aklog'], **kwargs)
+        except OSError :
+            print 'aklog not found.'
+            return 0, '', ''
+        
     def _kinit_aklog(self) :
         exitcode, stdout, stderr = self._kinit()
         if exitcode != 0 :
