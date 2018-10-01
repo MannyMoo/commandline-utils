@@ -54,6 +54,31 @@ def dvd_scan(logfile = None, device = '/dev/dvd') :
     logfile.close()
     return titles
 
+presets = {
+    'vfast_1080' : 'Very Fast 1080p30',
+    'vfast_720' : 'Very Fast 720p30',
+    'vfast_576' : 'Very Fast 576p25',
+    'vfast_480' : 'Very Fast 480p30',
+    'fast_1080' : 'Fast 1080p30',
+    'fast_720' : 'Fast 720p30',
+    'fast_576' : 'Fast 576p25',
+    'fast_480' : 'Fast 480p30',
+    'hq_1080' : 'HQ 1080p30 Surround',
+    'hq_720' : 'HQ 720p30 Surround',
+    'hq_576' : 'HQ 576p25 Surround',
+    'hq_480' : 'HQ 480p30 Surround',
+    'superhq_1080' : 'Super HQ 1080p30 Surround',
+    'superhq_720' : 'Super HQ 720p30 Surround',
+    'superhq_576' : 'Super HQ 576p25 Surround',
+    'superhq_480' : 'Super HQ 480p30 Surround',
+}
+
+def rip_title(inputfile, titleno, titleinfo, outputfile, preset = None) :
+    args = ['HandBrakeCLI', '-i', inputfile, '-o', outputfile, '-t', titleno]
+    if not preset :
+        size = titleinfo['size'].split('x')[0]
+        
+
 if __name__ == '__main__' :
     from pprint import pprint
     pprint(dvd_scan('/media/repository/media/dvdrips/queued/FIREFLY_DISC2.scan'))
