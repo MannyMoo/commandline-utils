@@ -6,6 +6,10 @@ import subprocess
 from tempfile import TemporaryFile
 
 def dvd_scan(logfile = None, device = '/dev/dvd') :
+    '''Scan a DVD and parse the info on the titles it contains. 'logfile' can be a
+    file containing the output of a previous call to HandBrakeCLI --scan, in which
+    case that's parsed instead.'''
+    
     if not logfile :
         logfile = TemporaryFile()
         proc = subprocess.Popen(['HandBrakeCLI', '-i', device, '-t', '0', '--scan'],
@@ -41,8 +45,6 @@ def dvd_scan(logfile = None, device = '/dev/dvd') :
             elif vals[0] == 'size' :
                 vals = filter(None, line.split(', '))
                 vals[-2:] = [', '.join(vals[-2:])]
-                print line
-                print vals
                 for v in vals :
                     v = v.split(':')
                     info[v[0]] = v[1].strip()
@@ -73,12 +75,47 @@ presets = {
     'superhq_480' : 'Super HQ 480p30 Surround',
 }
 
-def rip_title(inputfile, titleno, titleinfo, outputfile, preset = None) :
-    args = ['HandBrakeCLI', '-i', inputfile, '-o', outputfile, '-t', titleno]
-    if not preset :
-        size = titleinfo['size'].split('x')[0]
-        
+def rip_title(inputfile, titleno, titleinfo, outputfile, preset = None, quality = 'hq',
+              subtitles = 'all', audiotrack = 'all') :
+    args = ['HandBrakeCLI', '-i', inputfile, '-o', outputfile, '-t', str(titleno)]
 
+    if not preset :
+        preset = titleinfo['size'].split('x')[0]
+        preset = presets[quality + '_' + size]
+    elif preset in presets :
+        preset = presets[preset]
+    args += ['--preset', preset]
+
+    # Optimise for streaming and add chapter markers.
+    args += ['-O', '-m']
+    
+    if subtitles :
+        if isinstance(subtitles, str) :
+            if subtitles.lower() == 'all' :
+                subtitles = 'all'
+            else :
+                subtitles = (subtitles,)
+
+        if subtitles == 'all' :
+            args += ['-s', ','.join(str(i+1) for i in xrange(len(titleinfo['subtitle tracks'])))]
+        else :
+            args += ['--subtitle-lang-list', ','.join(subtitles)]
+        #args += ['--srt-file', outputfile + '.srt']
+        
+    if audiotrack :
+        if audiotrack.lower() == 'all' :
+            audiotrack = ','.join(str(i+1) for i in range(len(titleinfo['audio tracks'])))
+        args += ['-a', audiotrack]
+        
+    with open(outputfile + '.handbrake.log', 'w') as logfile :
+        proc = subprocess.Popen(args, stdout = logfile, stderr = logfile)
+        proc.wait()
+    return proc.poll()
+    
 if __name__ == '__main__' :
     from pprint import pprint
-    pprint(dvd_scan('/media/repository/media/dvdrips/queued/FIREFLY_DISC2.scan'))
+    info = dvd_scan('/media/repository/media/dvdrips/queued/FIREFLY_DISC4.scan')
+    rip_title('/media/repository/media/dvdrips/queued/FIREFLY_DISC4.iso',
+              #len(info)-1, info[-1],
+              1, info[0],
+              '/tmp/test.mp4', quality = 'hq')
