@@ -80,7 +80,7 @@ def rip_title(inputfile, titleno, titleinfo, outputfile, preset = None, quality 
     args = ['HandBrakeCLI', '-i', inputfile, '-o', outputfile, '-t', str(titleno)]
 
     if not preset :
-        preset = titleinfo['size'].split('x')[0]
+        size = titleinfo['size'].split('x')[0]
         preset = presets[quality + '_' + size]
     elif preset in presets :
         preset = presets[preset]
