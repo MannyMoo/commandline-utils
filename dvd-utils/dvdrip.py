@@ -123,7 +123,7 @@ class DVDRipper(object) :
             titleinfo = self.titleinfos[str(titleinfo)]
 
         outputfile = self.output.format(str(titleinfo['titleno']).zfill(2))
-        args = ['HandBrakeCLI', '-i', self.input, '-o', outputfile,
+        args = ['nice', '-n', '5', 'HandBrakeCLI', '-i', self.input, '-o', outputfile,
                 '-t', str(titleinfo['titleno'])]
 
         width, height = titleinfo['size'].split('x')
