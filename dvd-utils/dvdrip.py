@@ -2,8 +2,20 @@
 
 '''Rip a dvd using HandBrakeCLI.'''
 
-import subprocess, os
+import subprocess, os, re, sys
 from tempfile import TemporaryFile
+from datetime import datetime, timedelta
+from copy import deepcopy
+
+def is_sublist(sublist, fulllist) :
+    '''Check if 'sublist' is contained in 'fulllist', in order. Returns
+    the list of start indices of sublist in fulllist for all instances found,
+    else an empty list.'''
+    indices = []
+    for istart in xrange(0, len(fulllist) - len(sublist) + 1) :
+        if fulllist[istart:istart + len(sublist)] == sublist :
+            indices.append(istart)
+    return indices
 
 class DVDRipper(object) :
 
@@ -29,7 +41,7 @@ class DVDRipper(object) :
 
     def __init__(self, input, output, scanlogfile = None, subtitles = 'all',
                  audiotrack = 'all', preset = None, quality = 'hq',
-                 savepreset = False) :
+                 savepreset = False, bitrate = '2200', logfile = sys.stdout) :
 
         self.input = input
         self.output = output
@@ -40,7 +52,9 @@ class DVDRipper(object) :
         self.quality = quality
         self.savepreset = savepreset
         self.titleinfos = self.dvd_scan()
-
+        self.bitrate = bitrate
+        self.logfile = logfile
+        
         if isinstance(subtitles, str) :
             if subtitles.lower() == 'all' :
                 self.subtitles = 'all'
@@ -63,7 +77,7 @@ class DVDRipper(object) :
         elif isinstance(self.scanlogfile, str) :
             self.scanlogfile = open(self.scanlogfile)
 
-        titles = []
+        titles = {}
         for line in self.scanlogfile :
             line = line[:-1]
             if not line.lstrip().startswith('+') :
@@ -72,8 +86,9 @@ class DVDRipper(object) :
             depth = line.find('+')/2
             line = line.lstrip(' +')
             if 0 == depth :
-                info = {'titleno' : line.split()[-1].replace(':','')}
-                titles.append(info)
+                titleno = line.split()[-1].replace(':','')
+                info = {'titleno' : titleno}
+                titles[titleno] = info
             elif 1 == depth :
                 vals = filter(None, line.split(':'))
                 # if it's the name of a list of attributes, like 'chapters'
@@ -101,12 +116,11 @@ class DVDRipper(object) :
         return titles
 
     def rip_title(self, titleinfo) :
-        if isinstance(titleinfo, int) :
-            infos = filter(lambda info : info['titleno'] == str(titleinfo), self.titleinfos)
-            if not infos :
+        if isinstance(titleinfo, (int,str)) :
+            if not str(titleinfo) in self.titleinfos :
                 raise ValueError("No title {0} on this DVD, options are: {1}"
-                                 .format(titleinfo, [info['titleno'] for info in self.titleinfos]))
-            titleinfo = infos[0]
+                                 .format(titleinfo, self.titleinfos.keys()))
+            titleinfo = self.titleinfos[str(titleinfo)]
 
         outputfile = self.output.format(titleinfo['titleno'])
         args = ['HandBrakeCLI', '-i', self.input, '-o', outputfile,
@@ -130,14 +144,15 @@ class DVDRipper(object) :
             '-w', width, '-l', height, '--display-width', displaywidth,
             '--custom-anamorphic', '--modulus', '2',
             # Filter
-            '--decomb', '--no-deblock',
-            # Video
-            # '-e', 'x264', '--vfr',
-            '-b', '2200',
-            # Audio
-            # '-E', 'av_aac,copy:ac3', '-B', '160,640', '--audio-fallback', 'av_aac',
-            # Advanced
-            '--encopts', 'level=4.1:vbv-bufsize=78125:vbv-maxrate=62500:ref=4:b-adapt=2:direct=auto:me=umh:subme=9:analyse=all',
+            '--decomb', '--no-deblock',]
+        # Video
+        # args += ['-e', 'x264', '--vfr',]
+        if self.bitrate :
+            args += ['-b', self.bitrate]
+        # Audio
+        # args += ['-E', 'av_aac,copy:ac3', '-B', '160,640', '--audio-fallback', 'av_aac',]
+        # Advanced
+        args += ['--encopts', 'level=4.1:vbv-bufsize=78125:vbv-maxrate=62500:ref=4:b-adapt=2:direct=auto:me=umh:subme=9:analyse=all',
         ]
         if self.savepreset :
             args += ['--preset-export', os.path.split(outputfile)[1],
@@ -166,11 +181,110 @@ class DVDRipper(object) :
             proc.wait()
         return proc.poll()
 
+    def _duration(self, timestr) :
+        '''Convert a string of the format H:M:S to a duration in seconds.'''
+        # Bit of abuse of datetime in order to parse the duration.
+        # Shouldn't be a problem as we'll never have a DVD with a
+        # title longer than 24 hrs (surely).
+        zero = datetime(1900, 1, 1)
+        duration = datetime.strptime(timestr, '%H:%M:%S')
+        for attr in 'year', 'month', 'day' :
+            setattr(duration, attr, getattr(zero, attr))
+        return (duration - zero).total_seconds()
+        
+    def duration(self, titleinfo) :
+        '''Get the duration in seconds of the given title.'''
+        return self._duration(titleinfo['duration'])
+        
+    def total_duration(self, filterfunc = None) :
+        '''Get the total duration of all titles.'''
+        if not filterfunc :
+            return sum(self.duration(title) for title in self.titleinfos.values())
+        return sum(self.duration(title) for title in self.titleinfos.values() if filterfunc(title))
+        
+    def unique_titles(self) :
+        '''Get unique titles in this DVD (since some have, eg, two titles with the same episode, or
+        one title that contains others for a 'play all' functionality).'''
+
+        # Copy titles.
+        copytitles = deepcopy(self.titleinfos)
+        for title in copytitles.values() :
+            del title['titleno']
+            for i, info in enumerate(title['extrainfo']) :
+                title['extrainfo'][i] = re.sub('ttn [0-9]+, ', '', info)
+
+        # Remove duplicates.
+        titlenos = copytitles.keys()
+        for i, titleno in enumerate(titlenos) :
+            if not titleno in copytitles :
+                continue
+            for checktitleno in titlenos[i+1:] :
+                if not checktitleno in copytitles :
+                    continue
+                if copytitles[checktitleno] == copytitles[titleno] :
+                    print >> self.logfile, 'Title', checktitleno, 'is the same as title', titleno + ', removing it'
+                    del copytitles[checktitleno]
+                    
+        # Check if one title's chapters are contained in another title's.
+        # This checks by number of blocks and duration of each chapter
+        # in order, so should be very unlikely to give a false positive.
+        for title in copytitles.values() :
+            chapters = []
+            for chapter in title['chapters'] :
+                # Remove the 'cell' number so it just has 'blocks' and 'duration'
+                chapters.append(', '.join(chapter.split(', ')[1:]))
+            title['chapters'] = chapters
+            title['contains'] = []
+        for ititle, title in copytitles.items() :
+            for icheck, checktitle in copytitles.items() :
+                if ititle == icheck :
+                    continue
+                istart = is_sublist(checktitle['chapters'], title['chapters'])
+                if not istart :
+                    continue
+                for i in istart :
+                    title['contains'].append((icheck, i))
+                    
+        uniquetitles = {}
+        for ititle, title in copytitles.items() :
+            if not title['contains'] :
+                uniquetitles[ititle] = title
+            title['contains'].sort(key = lambda pair : pair[1])
+            containedchapters = []
+            for icontained, istart in title['contains'] :
+                containedchapters += copytitles[icontained]['chapters']
+            if containedchapters == title['chapters'] :
+                print >> self.logfile, 'Title', ititle, 'is the sum of titles', str([pair[0] for pair in title['contains']]) \
+                    + ', removing it.'
+            else :
+                uniquetitles[ititle] = title
+        return {titleno : self.titleinfos[titleno] for titleno in uniquetitles}
+
+    def rip_all(self, onlyunique = True) :
+        '''Rip all titles in the DVD, optionally only the unique ones.'''
+        if onlyunique :
+            titles = self.unique_titles()
+        else :
+            titles = self.titleinfos
+
+        retvals = {}
+        for titleno, title in titles.items() :
+            titleretval = self.rip_title(title)
+            if 0 != titleretval :
+                print >> self.logfile, 'Error ripping title', titleno + '. Return value:', + retval
+            retvals[titleno] = titleretval
+        return retvals
+    
 if __name__ == '__main__' :
     from pprint import pprint
-    ripper = DVDRipper(input = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC1/FARSCAPE_SEASON2_DISC1.iso',
+    input = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC6/FARSCAPE_SEASON2_DISC6.iso'
+    #input = '/media/repository/media/dvdrips/queued/FIREFLY_DISC4/FIREFLY_DISC4.iso'
+    #input = '/media/repository/media/dvdrips/queued/TAXI_DRIVER/TAXI_DRIVER.iso'
+    ripper = DVDRipper(input = input,
                        output = '/tmp/test-farscape-hq576-{0}.mp4',
-                       scanlogfile = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC1/FARSCAPE_SEASON2_DISC1.scan',
+                       scanlogfile = input[:-4] + '.scan',
                        quality = 'hq',
                        savepreset = True)
-    ripper.rip_title(1)
+    #ripper.rip_title(1)
+    uniquetitles = ripper.unique_titles()
+    pprint(uniquetitles)
