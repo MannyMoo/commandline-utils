@@ -271,20 +271,22 @@ class DVDRipper(object) :
         for titleno, title in titles.items() :
             titleretval = self.rip_title(title)
             if 0 != titleretval :
-                print >> self.logfile, 'Error ripping title', titleno + '. Return value:', + retval
+                print >> self.logfile, 'Error ripping title', titleno + '. Return value:', + titleretval
             retvals[titleno] = titleretval
         return retvals
     
 if __name__ == '__main__' :
     from pprint import pprint
-    input = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC6/FARSCAPE_SEASON2_DISC6.iso'
-    #input = '/media/repository/media/dvdrips/queued/FIREFLY_DISC4/FIREFLY_DISC4.iso'
+    #input = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC6/FARSCAPE_SEASON2_DISC6.iso'
+    input = '/media/repository/media/dvdrips/processing/FIREFLY_DISC1/FIREFLY_DISC1.iso'
     #input = '/media/repository/media/dvdrips/queued/TAXI_DRIVER/TAXI_DRIVER.iso'
+    output = input[:-4] + '_Title_{0}.mp4'
     ripper = DVDRipper(input = input,
-                       output = '/tmp/test-farscape-hq576-{0}.mp4',
+                       output = output,
                        scanlogfile = input[:-4] + '.scan',
-                       quality = 'hq',
+                       quality = 'vfast',
+                       bitrate = '100',
                        savepreset = True)
-    #ripper.rip_title(1)
-    uniquetitles = ripper.unique_titles()
-    pprint(uniquetitles)
+    ripper.rip_title(4)
+    #uniquetitles = ripper.unique_titles()
+    #pprint(uniquetitles)
