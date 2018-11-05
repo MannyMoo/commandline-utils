@@ -115,7 +115,7 @@ class DVDRipper(object) :
         self.scanlogfile.close()
         return titles
 
-    def rip_title(self, titleinfo) :
+    def rip_title(self, titleinfo, overwrite = False) :
         if isinstance(titleinfo, (int,str)) :
             if not str(titleinfo) in self.titleinfos :
                 raise ValueError("No title {0} on this DVD, options are: {1}"
@@ -123,6 +123,15 @@ class DVDRipper(object) :
             titleinfo = self.titleinfos[str(titleinfo)]
 
         outputfile = self.output.format(str(titleinfo['titleno']).zfill(2))
+        logfilename = outputfile + '.handbrake.log'
+        if os.path.exists(outputfile) and os.path.exists(logfilename) and not overwrite :
+            with open(logfilename) as logfile :
+                for line in logfile :
+                    pass
+            if line and line.split()[-1] == '0' :
+                print >> self.logfile, 'Title', titleinfo['titleno'], 'already ripped successfully.'
+                return 0
+        
         args = ['nice', '-n', '5', 'HandBrakeCLI', '-i', self.input, '-o', outputfile,
                 '-t', str(titleinfo['titleno'])]
 
@@ -176,9 +185,10 @@ class DVDRipper(object) :
                 audioname = titleinfo['audio tracks'][int(audiotrack)+1].replace(',', '')
             args += ['-a', audiotrack, '-A', audioname]
 
-        with open(outputfile + '.handbrake.log', 'w') as logfile :
+        with open(logfilename, 'w') as logfile :
             proc = subprocess.Popen(args, stdout = logfile, stderr = logfile)
             proc.wait()
+            logfile.write('Exit code: ' + str(proc.poll()) + '\n')
         return proc.poll()
 
     def _duration(self, timestr) :
