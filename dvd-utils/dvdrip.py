@@ -245,6 +245,16 @@ class DVDRipper(object) :
                 chapters.append(', '.join(chapter.split(', ')[1:]))
             title['chapters'] = chapters
             title['contains'] = []
+        # Remove duplicate chapters that're tacked on the end of titles.
+        firsttitle = copytitles.values()[0]
+        for i in xrange(-1, -min(len(title['chapters']) for title in copytitles.values()), -1) :
+            if all(title['chapters'][-1] == firsttitle['chapters'][-1] for title in copytitles.values()[1:]) :
+                print 'Remove chapter', i, 'from all titles'
+                for title in copytitles.values() :
+                    title['chapters'].pop()
+            else :
+                break    
+                
         for ititle, title in copytitles.items() :
             for icheck, checktitle in copytitles.items() :
                 if ititle == icheck :
@@ -257,8 +267,9 @@ class DVDRipper(object) :
                     
         uniquetitles = {}
         for ititle, title in copytitles.items() :
-            if not title['contains'] :
+            if not title['contains'] or len(title['contains']) == 1 :
                 uniquetitles[ititle] = title
+                continue
             title['contains'].sort(key = lambda pair : pair[1])
             containedchapters = []
             for icontained, istart in title['contains'] :
@@ -288,8 +299,10 @@ class DVDRipper(object) :
 if __name__ == '__main__' :
     from pprint import pprint
     #input = '/media/repository/media/dvdrips/queued/FARSCAPE_SEASON2_DISC6/FARSCAPE_SEASON2_DISC6.iso'
-    input = '/media/repository/media/dvdrips/processing/FIREFLY_DISC1/FIREFLY_DISC1.iso'
+    #input = '/media/repository/media/dvdrips/processing/FIREFLY_DISC1/FIREFLY_DISC1.iso'
     #input = '/media/repository/media/dvdrips/queued/TAXI_DRIVER/TAXI_DRIVER.iso'
+    #input = '/tmp/test.iso'
+    input = '/media/repository/media/dvdrips/queued/BBCDVD2270/BBCDVD2270.iso'
     output = input[:-4] + '_Title_{0}.mp4'
     ripper = DVDRipper(input = input,
                        output = output,
@@ -297,6 +310,7 @@ if __name__ == '__main__' :
                        quality = 'vfast',
                        bitrate = '100',
                        savepreset = True)
-    ripper.rip_title(4)
-    #uniquetitles = ripper.unique_titles()
-    #pprint(uniquetitles)
+    #ripper.rip_title(18)
+    #ripper.rip_all()
+    uniquetitles = ripper.unique_titles()
+    pprint(uniquetitles)
