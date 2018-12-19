@@ -125,6 +125,7 @@ class DVDRipper(object) :
         outputfile = self.output.format(str(titleinfo['titleno']).zfill(2))
         logfilename = outputfile + '.handbrake.log'
         if os.path.exists(outputfile) and os.path.exists(logfilename) and not overwrite :
+            line = ''
             with open(logfilename) as logfile :
                 for line in logfile :
                     pass
