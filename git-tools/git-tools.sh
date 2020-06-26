@@ -36,11 +36,17 @@ function git_gen_ssh_key() {
     echo "Generating ssh private/public key pair."
     if [ ! -e ~/.ssh ] ; then
 	mkdir ~/.ssh
+	chmod 0700 ~/.ssh
+    fi
+    if [ ! -e $(dirname $GITKEYNAME) ] ; then
+	mkdir -p $(dirname $GITKEYNAME)
     fi
     ssh-keygen -t rsa -b 4096 -f "$GITKEYNAME" -C "$(git config --get user.email)"
     git_start_ssh_agent
-    echo "Public key (on github.com copy to Settings -> SSH Keys -> Add SSH Key):"
+    echo "Go to https://github.com/settings/ssh/new and copy the below into the \"Key\" box, set the title to describe which machine this is, and click 'Add SSH key'. Hit enter once this is done."
+    echo
     cat "${GITKEYNAME}.pub"
+    read
     echo "Editing ~/.ssh/config to add git config."
     git_set_ssh_config
     echo "Testing ssh settings."

@@ -31,3 +31,11 @@ function turn-device-on() {
 function turn-device-off() {
     sudo ifconfig $1 down
 }
+
+function ssh-start-socks-tunnel() {
+    # start an ssh SOCKS tunnel to the given port and server.
+    local pid=$(ssh -D $1 -f -C -q -N $2 & echo $!)
+    echo "tunnel pid: $pid"
+    echo "set SOCKS proxy to:"
+    echo "localhost:$1"
+}
