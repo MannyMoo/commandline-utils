@@ -54,3 +54,4 @@ if [ $setupgit != 0 ] ; then
     git_setup_new_machine "${un}" "${email}"
     git_set_ssh_remote "${utilsdir}"
 fi
+cd -
