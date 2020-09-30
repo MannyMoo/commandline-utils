@@ -81,3 +81,19 @@ function connect-vpn() {
 function stop-vpn() {
     scutil --nc start $1
 }
+
+# Make a sparse bundle for use as a Time Machine backup location on a network drive following#
+# http://code.iamkate.com/articles/time-machine-on-a-network-drive/
+# Couldn't actually get this to work. Ended up using this:
+# https://www.imore.com/how-use-time-machine-backup-your-mac-windows-shared-folder
+function make-sparse-bundle() {
+    dest=$2
+    size=$1
+    defaults write com.apple.systempreferences TMShowUnsupportedNetworkVolumes 1
+    mac=$(ifconfig en0 | grep ether | awk '{print $2;}' | sed 's/://g')
+    name=$(hostname | sed 's/\.local//' | sed 's/\.lan//')
+    bundle=${name}_${mac}.sparsebundle
+    hdiutil create -size $size -fs HFS+J -volname "Time Machine" $bundle
+    rsync -aE $bundle $dest
+    rm -rf $bundle
+}
