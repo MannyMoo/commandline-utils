@@ -28,13 +28,14 @@ function img-rename-to-cdate() {
     fi
     suffix="$(echo $fname | sed 's/\./ /g' | awk '{print $NF}')"
     datename="$(echo $cdate | sed 's/://g' | sed 's/ /_/')"
-    newname="${datename}.${suffix}"
+    dname="$(dirname $fname)"
+    newname="${dname}/${datename}.${suffix}"
     if [ -e "$newname" ] ; then
 	i=1
 	newname="${datename}_${i}.${suffix}"
 	while [ -e "$newname" ] ; do
 	    let i+=1
-	    newname="${datename}_${i}.${suffix}"
+	    newname="${dirname}/${datename}_${i}.${suffix}"
 	done
     fi
     if [ ! -z "$2" ] ; then
