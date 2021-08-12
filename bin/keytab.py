@@ -6,7 +6,7 @@ import os, sys
 default_keytab = '{0}/.{1}.keytab'.format(os.environ.get('HOME', '/home/' + getuser()),
                                           getuser())
 default_domain = 'CERN.CH'
-ktutil = '/usr/bin/ktutil'
+ktutil = ['/usr/bin/ktutil', '/usr/sbin/ktutil']
 
 __doc__ = """Keytab file maintenance utility.
 
@@ -90,7 +90,11 @@ def kinit_test ():
 if args['test']:
     sys.exit(kinit_test())
 
-
+_ktutil = list(filter(lambda path : os.path.exists(path), ktutil))
+if not _ktutil:
+    raise OSError("Couldn't find any of {0}".format(ktutil))
+ktutil = _ktutil[0]
+    
 # 0. Start ktutil command as a child process
 child = pexpect.spawn(ktutil)
 default_prompt = 'ktutil:  '
