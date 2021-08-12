@@ -9,7 +9,7 @@ function afs-screen() {
     if [ ! -e $keytab ] ; then
 	make_krb_keytab
     fi
-    screen -q -raAd $1 || k5reauth -f -i 3600 -p $USER -k $keytab -- screen -S $1
+    screen -q -raAd $1 || k5reauth -i 3600 -p $USER -k $keytab -- screen -S $1
 }
 
 function afs-tmux() {
@@ -17,7 +17,7 @@ function afs-tmux() {
     if [ ! -e $keytab ] ; then
 	make_krb_keytab
     fi
-    tmux attach-session -t $1 || k5reauth -f -i 3600 -p $USER -k $keytab -- tmux new-session -s $1
+    tmux attach-session -t $1 || k5reauth -i 3600 -p $USER -k $keytab -- tmux new-session -s $1
 }
 
 function start-krenew() {
