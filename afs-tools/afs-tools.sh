@@ -4,20 +4,33 @@ function set_afs_perm_recur() {
     find $1 -type d -exec fs sa {} $2 $3 \;
 }
 
-function afs-screen() {
+function check_keytab() {
     keytab=~/.${USER}.keytab
     if [ ! -e $keytab ] ; then
 	make_krb_keytab
     fi
-    screen -q -raAd $1 || k5reauth -i 3600 -p $USER -k $keytab -- screen -S $1
+    cp $keytab /tmp
+    echo "/tmp/$(basename $keytab)"
+}
+
+function afs-screen() {
+    if [ -z "$1" ] ; then
+	name=default
+    else
+	name="$1"
+    fi
+    keytab=$(check_keytab)
+    screen -q -raAd $name || pagsh.krb -c "k5reauth -f -k $keytab -- screen -S $name"
 }
 
 function afs-tmux() {
-    keytab=~/.${USER}.keytab
-    if [ ! -e $keytab ] ; then
-	make_krb_keytab
+    if [ -z "$1" ] ; then
+	name=default
+    else
+	name="$1"
     fi
-    tmux attach-session -t $1 || k5reauth -i 3600 -p $USER -k $keytab -- tmux new-session -s $1
+    keytab=$(check_keytab)
+    tmux attach-session -t $name || pagsh.krb -c "k5reauth -f -k $keytab -- tmux new-session -s $name"
 }
 
 function start-krenew() {
