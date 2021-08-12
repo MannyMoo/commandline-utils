@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import subprocess, os, datetime
 
@@ -44,7 +44,7 @@ class KrbCache(object) :
         try :
             return self.call(args = ['aklog'], **kwargs)
         except OSError :
-            print 'aklog not found.'
+            print('aklog not found.')
             return 0, '', ''
         
     def _kinit_aklog(self) :
