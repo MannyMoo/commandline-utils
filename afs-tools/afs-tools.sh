@@ -5,11 +5,19 @@ function set_afs_perm_recur() {
 }
 
 function afs-screen() {
-    # Move .screenrc to ~/public so it can be accessed without AFS tokens. 
-    # Requires pagsh.krb and k5reauth to be in PATH.
-    screen -q -raAd $1 || \
-	(pagsh.krb -c "SCREENRC=$HOME/public/.screenrc screen -S $1 -d -m k5reauth \
-&& screen -raAd $1")
+    keytab=~/.${USER}.keytab
+    if [ ! -e $keytab ] ; then
+	make_krb_keytab
+    fi
+    screen -q -raAd $1 || k5reauth -f -i 3600 -p $USER -k $keytab -- screen -S $1
+}
+
+function afs-tmux() {
+    keytab=~/.${USER}.keytab
+    if [ ! -e $keytab ] ; then
+	make_krb_keytab
+    fi
+    tmux attach-session -t $1 || k5reauth -f -i 3600 -p $USER -k $keytab -- tmux new-session -s $1
 }
 
 function start-krenew() {
@@ -24,3 +32,9 @@ function start-krenew() {
         krenew -K 60 -t -k ${KRB5CCNAME} &
     fi
 }
+
+function make_krb_keytab() {
+    # Make the keytab for use at CERN
+    keytab.py $USER --algorithms=arcfour-hmac-md5,aes256-cts --and-test
+}
+
