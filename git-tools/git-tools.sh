@@ -60,7 +60,7 @@ function git_set_ssh_config() {
 	cp ~/.ssh/config ~/.ssh/config.bkup
     fi
     # Could use sed -i but requires sed -i "" on MacOS.
-    echo "Host github.com:
+    echo "Host github.com
    PubkeyAuthentication yes
    IdentityFile ${GITKEYNAME}
 
