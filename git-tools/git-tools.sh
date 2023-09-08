@@ -64,7 +64,10 @@ function git_set_ssh_config() {
    PubkeyAuthentication yes
    IdentityFile ${GITKEYNAME}
 
-" > ~/.ssh/config.git && cat ~/.ssh/config.git ~/.ssh/config > ~/.ssh/config && rm ~/.ssh/config.git
+" > ~/.ssh/config.git \
+	&& cat ~/.ssh/config.git ~/.ssh/config > ~/.ssh/config.new \
+	&& rm ~/.ssh/config.git \
+	&& mv ~/.ssh/config.new ~/.ssh/config
 }
 
 function git_test_ssh() {
