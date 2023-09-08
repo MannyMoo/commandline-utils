@@ -43,7 +43,7 @@ function git_gen_ssh_key() {
     fi
     ssh-keygen -t rsa -b 4096 -f "$GITKEYNAME" -C "$(git config --get user.email)"
     git_start_ssh_agent
-    echo "Go to https://github.com/settings/ssh/new and copy the below into the \"Key\" box, set the title to describe which machine this is, and click 'Add SSH key'. Hit enter once this is done."
+    echo "Go to https://github.com/settings/ssh/new and/or https://bitbucket.org/account/settings/ssh-keys and copy the below into the \"Key\" box, set the title to describe which machine this is, and click 'Add SSH key'. Hit enter once this is done."
     echo
     cat "${GITKEYNAME}.pub"
     read
@@ -60,11 +60,11 @@ function git_set_ssh_config() {
 	cp ~/.ssh/config ~/.ssh/config.bkup
     fi
     # Could use sed -i but requires sed -i "" on MacOS.
-    sed "1 i\\
-Host github.com\\
-\   PubkeyAuthentication yes\\
-\   IdentityFile ${GITKEYNAME}\\
-" ~/.ssh/config > ~/.ssh/config.tmp && mv ~/.ssh/config.tmp ~/.ssh/config
+    echo "Host github.com:
+   PubkeyAuthentication yes
+   IdentityFile ${GITKEYNAME}
+
+" > ~/.ssh/config.git && cat ~/.ssh/config.git ~/.ssh/config > ~/.ssh/config && rm ~/.ssh/config.git
 }
 
 function git_test_ssh() {
