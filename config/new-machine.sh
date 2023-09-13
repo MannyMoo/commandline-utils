@@ -23,3 +23,4 @@ git clone git@github.com:MannyMoo/config.git lib/config
 bash ~/lib/config/default-linux/setup.sh
 python3 ~/lib/config/ssh/setup.py
 bash ~/lib/config/tmux/setup.sh
+bash ~/lib/config/emacs/setup.sh
