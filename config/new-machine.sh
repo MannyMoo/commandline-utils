@@ -4,8 +4,6 @@
 
 sudo apt install tmux emacs python3 zsh git
 
-curl https://pyenv.run | bash
-
 export GITKEYNAME="${HOME}/.ssh/keys/id_rsa.git"
 if [ ! -d ~/.ssh/keys ] ; then
     mkdir ~/.ssh/keys
@@ -20,6 +18,7 @@ bash setup.sh -g -u "$un" -e "em"
 rm setup.sh
 
 bash ~/lib/bash/commandline-utils/shell-tools/setup-zsh.sh
+bash ~/lib/bash/commandline-utils/pyenv/pyenv-install.sh
 
 git clone git@github.com:MannyMoo/config.git lib/config
 bash ~/lib/config/default-linux/setup.sh
