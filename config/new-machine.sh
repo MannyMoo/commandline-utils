@@ -4,6 +4,8 @@
 
 sudo apt install tmux emacs python3 zsh git
 
+curl https://pyenv.run | bash
+
 export GITKEYNAME="${HOME}/.ssh/keys/id_rsa.git"
 if [ ! -d ~/.ssh/keys ] ; then
     mkdir ~/.ssh/keys
