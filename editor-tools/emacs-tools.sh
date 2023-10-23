@@ -11,7 +11,7 @@ if [ -z $EMACSCLIENT ] ; then
 fi
 
 function grep-emacs-daemon() {
-    ps aux | grep "$EMACSBASE --daemon"
+    ps aux | grep -i "emacs.*daemon"
 }
 
 function is-emacs-demon-running() {
@@ -35,13 +35,8 @@ else
     RUNEMACS="$EMACS"
 fi
 
-if [ -z $SSH_CONNECTION ] ; then
-    alias em="$RUNEMACS"
-    alias emn="em -nw"
-else
-    alias em="$RUNEMACS -nw"
-    alias emn="em"
-fi
+alias em="$RUNEMACS -nw"
+alias emn="em"
 
 alias emwd="emd;em"
 alias emnwd="emd;emn"
