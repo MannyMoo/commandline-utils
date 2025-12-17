@@ -16,3 +16,8 @@ function bash-script() {
     # fill it with commands or edit it. 
     exe-script bash $1 $2
 }
+
+function fix-newline() {
+    # Fix when newlines get messed up in the terminal
+    stty sane
+}
